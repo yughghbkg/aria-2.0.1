@@ -1,5 +1,5 @@
 """
-"""System Tray integration for ARIA."""
+System Tray integration for ARIA.
 
 Provides a system tray icon with context menu for controlling the app
 when the main window is minimized.

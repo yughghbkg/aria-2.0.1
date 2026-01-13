@@ -368,8 +368,58 @@ class App:
 
 def run_app() -> None:
     """Entry point for the GUI application."""
-    app = App()
-    app.run()
+    import os
+    import tempfile
+    from pathlib import Path
+    
+    # Single instance check using lock file
+    lock_file_path = Path(tempfile.gettempdir()) / "aria_subtitles.lock"
+    
+    try:
+        # Try to create/open the lock file exclusively
+        if sys.platform == 'win32':
+            import msvcrt
+            lock_file = open(lock_file_path, 'w')
+            try:
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+            except (IOError, OSError):
+                # Another instance is running
+                from tkinter import messagebox
+                import tkinter as tk
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showwarning(
+                    "ARIA",
+                    "ARIA 已在運行中。\nARIA is already running."
+                )
+                root.destroy()
+                sys.exit(0)
+        else:
+            import fcntl
+            lock_file = open(lock_file_path, 'w')
+            try:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (IOError, OSError):
+                print("ARIA is already running.")
+                sys.exit(0)
+        
+        # Write PID to lock file
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        
+        # Run the app
+        app = App()
+        app.run()
+        
+    finally:
+        # Clean up lock file on exit
+        try:
+            if 'lock_file' in locals():
+                lock_file.close()
+            if lock_file_path.exists():
+                lock_file_path.unlink()
+        except:
+            pass
 
 
 if __name__ == "__main__":

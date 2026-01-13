@@ -1,4 +1,5 @@
-"""Main Settings Window for ARIA."""
+"""
+Main Settings Window for ARIA.
 
 A modern, beautiful settings interface using CustomTkinter.
 """
@@ -529,6 +530,20 @@ class SettingsWindow(ctk.CTk):
                 break
         
         if lang_code and lang_code != get_current_language():
+            # Save current settings before restarting (to preserve mode, model, etc.)
+            current_mode = self.mode_var.get()
+            # Convert display mode to internal value
+            if current_mode == t("mode_precise"):
+                mode_internal = "precise"
+            else:
+                mode_internal = "realtime"
+            
+            self._settings_mgr.set("mode", mode_internal)
+            self._settings_mgr.set("model", self._get_model_value())
+            self._settings_mgr.set("language", self._get_language_value())
+            self._settings_mgr.set("vad_enabled", self.vad_var.get())
+            self._settings_mgr.save()
+            
             set_language(lang_code)
             # Restart the application
             import sys
@@ -705,20 +720,31 @@ class SettingsWindow(ctk.CTk):
         # Language - convert saved language value to current translation
         saved_lang = self._settings_mgr.get("language", "")
         lang_code = None
-        # Try to find the language code from saved display name
-        for display_name, code in self.LANGUAGES:
-            if saved_lang == display_name:
-                lang_code = code
-                break
-        # Also check known old values
-        lang_mapping = {
-            "自動偵測": None, "自动检测": None, "Auto Detect": None,
-            "中文 (繁/簡)": "zh", "中文 (繁/简)": "zh", "Chinese (Trad/Simp)": "zh",
-            "英文": "en", "English": "en",
-            "日文": "ja", "Japanese": "ja",
-        }
-        if lang_code is None:
-            lang_code = lang_mapping.get(saved_lang, None)
+        
+        # The saved value could be:
+        # 1. An internal code like "en", "zh", "ja", None
+        # 2. An old display name like "自動偵測", "English", etc.
+        
+        # First, check if it's already an internal code
+        if saved_lang in [None, "", "None"]:
+            lang_code = None
+        elif saved_lang in ["zh", "en", "ja", "ko", "yue", "es", "fr", "de"]:
+            lang_code = saved_lang
+        else:
+            # Try to find the language code from saved display name
+            for display_name, code in self.LANGUAGES:
+                if saved_lang == display_name:
+                    lang_code = code
+                    break
+            # Also check known old values
+            lang_mapping = {
+                "自動偵測": None, "自动检测": None, "Auto Detect": None,
+                "中文 (繁/簡)": "zh", "中文 (繁/简)": "zh", "Chinese (Trad/Simp)": "zh",
+                "英文": "en", "English": "en",
+                "日文": "ja", "Japanese": "ja",
+            }
+            if lang_code is None and saved_lang in lang_mapping:
+                lang_code = lang_mapping.get(saved_lang, None)
         
         # Set the translated display name
         for display_name, code in self.LANGUAGES:

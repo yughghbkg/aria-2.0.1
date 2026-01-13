@@ -293,6 +293,10 @@ class ModelManager:
                 tf.extractall(model_path.parent)
         
         os.unlink(tmp_path)
+        
+        # Notify completion
+        if callback:
+            callback(model.id, 1.0, "完成")
     
     @staticmethod
     def _get_archive_suffix(url: str) -> str:

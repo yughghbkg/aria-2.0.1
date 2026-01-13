@@ -72,3 +72,8 @@ Desktop.ini
 # PyInstaller
 *.spec
 release/
+
+# Portable distribution
+python/
+*.bat
+*.vbs
