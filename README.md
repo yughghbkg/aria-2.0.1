@@ -50,16 +50,6 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 > 💡 **Tip**: Update your NVIDIA driver to the latest version for best performance.
 > Download from: https://www.nvidia.com/drivers
 
-### Performance Expectations
-
-| Mode | GPU | Speed |
-|------|-----|-------|
-| Precise Mode | RTX 4070 SUPER | ~10x realtime |
-| Precise Mode | RTX 3060 | ~5x realtime |
-| Precise Mode | GTX 1060 | ~2x realtime |
-| Precise Mode | CPU Only | ~0.5x realtime (slow) |
-| Realtime Mode | Any / CPU | Near-instant |
-
 ## 📦 Download
 
 ### Choose Your Version
