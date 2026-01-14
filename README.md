@@ -56,8 +56,8 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 
 | Version | Size | Description | Download |
 |---------|------|-------------|----------|
-| **Lite** | ~6 GB | No models included. Download models in-app. | [Google Drive](https://drive.google.com/file/d/1hCrXqGmDe46bnF5dfyAIxSzVf6P8rTj5/view?usp=sharing) |
-| **Full** | ~12 GB | All models pre-installed. Ready to use. | [Google Drive](https://drive.google.com/) |
+| **Lite** | ~4 GB | No models included. Download models in-app. | [Google Drive](https://drive.google.com/file/d/1FPiiWBZitUC8xlTDanyROiQj7ZX_sEZL/view?usp=drive_link) |
+| **Full** | ~8.5 GB | All models pre-installed. Ready to use. | [Google Drive](https://drive.google.com/file/d/1JU9uh-U13C7_mWC3P5Q3cHziaV2fqEKa/view?usp=drive_link) |
 
 ### Included Models (Full Version)
 
