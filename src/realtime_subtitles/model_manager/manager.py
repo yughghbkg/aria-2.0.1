@@ -215,7 +215,8 @@ class ModelManager:
             if callback:
                 callback(model.id, 1.0, t("download_status_complete"))
         except Exception as e:
-            print(f"[ModelManager] Download error: {e}")
+            from ..logger import error as log_error
+            log_error(f"Download error: {e}")
             if callback:
                 callback(model.id, -1, t("download_status_error").format(error=str(e)))
         finally:

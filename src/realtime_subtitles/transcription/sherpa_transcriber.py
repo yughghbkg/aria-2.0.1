@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Optional, Callable
 import numpy as np
 
+from ..logger import info, debug, warning
+
 # Sherpa import with error handling
 try:
     import sherpa_onnx
@@ -84,7 +86,7 @@ class SherpaTranscriber:
         model_info = self.MODELS[language]
         
         # Create recognizer config
-        print(f"[SherpaTranscriber] Loading model from {model_path}")
+        debug(f"SherpaTranscriber: Loading model from {model_path}")
         
         encoder = str(model_path / model_info["encoder"])
         decoder = str(model_path / model_info["decoder"])
@@ -112,7 +114,7 @@ class SherpaTranscriber:
         self._text_finalized = False
         self._max_segment_length = 50  # force new segment after this many characters
         
-        print(f"[SherpaTranscriber] Initialized with language={language}")
+        info(f"SherpaTranscriber: Initialized with language={language}")
     
     def _get_model_dir(self) -> Path:
         """Get the model directory (project directory)."""
@@ -130,12 +132,12 @@ class SherpaTranscriber:
         model_path = model_dir / model_info["name"]
         
         if model_path.exists():
-            print(f"[SherpaTranscriber] Using local model: {model_path}")
+            debug(f"SherpaTranscriber: Using local model: {model_path}")
             return model_path
         
         # Need to download
-        print(f"[SherpaTranscriber] Downloading model: {model_info['name']}")
-        print(f"[SherpaTranscriber] This may take a while...")
+        info(f"SherpaTranscriber: Downloading model: {model_info['name']}")
+        info("SherpaTranscriber: This may take a while...")
         
         tar_path = model_dir / f"{model_info['name']}.tar.bz2"
         
@@ -143,20 +145,19 @@ class SherpaTranscriber:
         def report_progress(block_num, block_size, total_size):
             downloaded = block_num * block_size
             percent = min(100, downloaded * 100 // total_size) if total_size > 0 else 0
-            print(f"\r[SherpaTranscriber] Downloading: {percent}%", end="", flush=True)
+            pass  # Suppress progress output
         
         urllib.request.urlretrieve(model_info["url"], tar_path, report_progress)
-        print()  # New line after progress
         
         # Extract
-        print(f"[SherpaTranscriber] Extracting model...")
+        info("SherpaTranscriber: Extracting model...")
         with tarfile.open(tar_path, "r:bz2") as tar:
             tar.extractall(model_dir)
         
         # Remove tar file
         tar_path.unlink()
         
-        print(f"[SherpaTranscriber] Model ready: {model_path}")
+        info(f"SherpaTranscriber: Model ready: {model_path}")
         return model_path
     
     def process_audio(self, audio: np.ndarray) -> tuple[str, bool]:

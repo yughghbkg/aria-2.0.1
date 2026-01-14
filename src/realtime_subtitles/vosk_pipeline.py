@@ -15,6 +15,7 @@ import numpy as np
 
 from .audio.capture import AudioCapture
 from .pipeline import SubtitleEvent
+from .logger import info, debug, warning, error
 
 # Import transcribers with fallbacks
 try:
@@ -33,9 +34,9 @@ except ImportError:
 try:
     from .translation.translator import create_translator, CTRANSLATE2_AVAILABLE, GOOGLETRANS_AVAILABLE
     TRANSLATION_AVAILABLE = CTRANSLATE2_AVAILABLE or GOOGLETRANS_AVAILABLE
-    print(f"[StreamingPipeline] Translation module loaded, CTRANSLATE2={CTRANSLATE2_AVAILABLE}, GOOGLE={GOOGLETRANS_AVAILABLE}")
+    debug(f"Translation module loaded, CTRANSLATE2={CTRANSLATE2_AVAILABLE}, GOOGLE={GOOGLETRANS_AVAILABLE}")
 except ImportError as e:
-    print(f"[StreamingPipeline] Translation import failed: {e}")
+    warning(f"Translation import failed: {e}")
     TRANSLATION_AVAILABLE = False
     create_translator = None
 
@@ -108,7 +109,7 @@ class StreamingPipeline:
                     target_language=target_language,
                 )
             except Exception as e:
-                print(f"[StreamingPipeline] Translation init failed: {e}")
+                warning(f"Translation init failed: {e}")
                 self._translator = None
         
         # Audio capture
@@ -125,11 +126,11 @@ class StreamingPipeline:
         self._process_thread: Optional[threading.Thread] = None
         
         trans_status = "enabled" if self._translator else "disabled"
-        print(f"[StreamingPipeline] Using {self._engine_name} for {language}, translation={trans_status}")
+        info(f"Using {self._engine_name} for {language}, translation={trans_status}")
     
     def _default_callback(self, event: SubtitleEvent) -> None:
         """Default subtitle callback."""
-        print(f"\r\033[K[{event.language}] {event.text}")
+        debug(f"[{event.language}] {event.text}")
     
     def _on_audio(self, audio: np.ndarray, sample_rate: int) -> None:
         """Callback from AudioCapture."""
@@ -167,9 +168,9 @@ class StreamingPipeline:
                                 # Keep translation lines in sync with original
                                 if len(self._translation_lines) > self.max_lines:
                                     self._translation_lines = self._translation_lines[-self.max_lines:]
-                                print(f"[StreamingPipeline] Translated: {text[:30]}... -> {line_translation[:30]}...")
+                                debug(f"Translated: {text[:30]}... -> {line_translation[:30]}...")
                         except Exception as e:
-                            print(f"[StreamingPipeline] Translation error: {e}")
+                            warning(f"Translation error: {e}")
                 
                 self._current_partial = ""
             else:
@@ -225,7 +226,7 @@ class StreamingPipeline:
         # Start audio capture
         self._audio_capture.start(callback=self._on_audio)
         
-        print(f"[StreamingPipeline] Started ({self._engine_name})")
+        info(f"StreamingPipeline started ({self._engine_name})")
     
     def stop(self) -> None:
         """Stop the pipeline."""
@@ -248,7 +249,7 @@ class StreamingPipeline:
         if final:
             self._lines.append(final)
         
-        print(f"[StreamingPipeline] Stopped")
+        info("StreamingPipeline stopped")
     
     def __enter__(self):
         self.start()

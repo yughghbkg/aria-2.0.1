@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 
+from ..logger import info, debug, warning
+
 try:
     from faster_whisper import WhisperModel
 except ImportError:
@@ -124,19 +126,19 @@ class WhisperTranscriber:
         self._device = device
         self._compute_type = compute_type
         
-        print(f"[WhisperTranscriber] Initializing {model_size} model on {device}")
-        print(f"[WhisperTranscriber] Compute type: {compute_type}")
+        info(f"WhisperTranscriber: Initializing {model_size} on {device}")
+        debug(f"WhisperTranscriber: Compute type: {compute_type}")
         
     def _ensure_model_loaded(self) -> None:
         """Lazy load the model on first use."""
         if self._model is None:
-            print(f"[WhisperTranscriber] Loading model (this may take a moment)...")
+            info("WhisperTranscriber: Loading model (this may take a moment)...")
             start = time.time()
             
             # Try to load from project directory first
             model_path = self._get_local_model_path()
             if model_path:
-                print(f"[WhisperTranscriber] Using local model: {model_path}")
+                debug(f"WhisperTranscriber: Using local model: {model_path}")
                 self._model = WhisperModel(
                     str(model_path),
                     device=self._device,
@@ -144,13 +146,13 @@ class WhisperTranscriber:
                 )
             else:
                 # Fall back to HuggingFace download (will auto-download)
-                print(f"[WhisperTranscriber] Model not found locally, using HuggingFace...")
+                info("WhisperTranscriber: Model not found locally, using HuggingFace...")
                 self._model = WhisperModel(
                     self._actual_model,
                     device=self._device,
                     compute_type=self._compute_type,
                 )
-            print(f"[WhisperTranscriber] Model loaded in {time.time() - start:.1f}s")
+            info(f"WhisperTranscriber: Model loaded in {time.time() - start:.1f}s")
     
     def _get_local_model_path(self) -> Optional[Path]:
         """Get path to local model in project directory if exists."""
@@ -243,7 +245,7 @@ class WhisperTranscriber:
         text_stripped = text.strip()
         for pattern in self.HALLUCINATION_PATTERNS:
             if text_stripped == pattern or text_stripped.lower() == pattern.lower():
-                print(f"[Whisper] Filtered hallucination: {text_stripped}")
+                debug(f"Whisper: Filtered hallucination: {text_stripped}")
                 return ""
             # Also check if text starts/ends with hallucination
             if text_stripped.startswith(pattern) or text_stripped.endswith(pattern):

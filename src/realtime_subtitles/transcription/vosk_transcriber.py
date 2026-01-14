@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Optional, Callable
 import numpy as np
 
+from ..logger import info, debug, warning
+
 # Vosk import with error handling
 try:
     from vosk import Model, KaldiRecognizer, SetLogLevel
@@ -100,7 +102,7 @@ class VoskTranscriber:
         else:
             self._model_path = self._get_or_download_model(language)
         
-        print(f"[VoskTranscriber] Loading model from {self._model_path}")
+        debug(f"VoskTranscriber: Loading model from {self._model_path}")
         self._model = Model(self._model_path)
         self._recognizer = KaldiRecognizer(self._model, self.SAMPLE_RATE)
         self._recognizer.SetWords(False)  # We don't need word-level timestamps
@@ -109,7 +111,7 @@ class VoskTranscriber:
         self._partial_text = ""
         self._final_text = ""
         
-        print(f"[VoskTranscriber] Initialized with language={language}")
+        info(f"VoskTranscriber: Initialized with language={language}")
     
     def _get_model_dir(self) -> Path:
         """Get the model directory (project directory)."""
@@ -130,12 +132,12 @@ class VoskTranscriber:
         model_path = model_dir / model_info["name"]
         
         if model_path.exists():
-            print(f"[VoskTranscriber] Using local model: {model_path}")
+            debug(f"VoskTranscriber: Using local model: {model_path}")
             return str(model_path)
         
         # Need to download
-        print(f"[VoskTranscriber] Downloading model: {model_info['name']} ({model_info['size']})")
-        print(f"[VoskTranscriber] This may take a while...")
+        info(f"VoskTranscriber: Downloading model: {model_info['name']} ({model_info['size']})")
+        info("VoskTranscriber: This may take a while...")
         
         zip_path = model_dir / f"{model_info['name']}.zip"
         
@@ -143,20 +145,20 @@ class VoskTranscriber:
         def report_progress(block_num, block_size, total_size):
             downloaded = block_num * block_size
             percent = min(100, downloaded * 100 // total_size)
-            print(f"\r[VoskTranscriber] Downloading: {percent}%", end="", flush=True)
+            # Progress logged at debug level to avoid spam
+            pass  # Suppress progress output
         
         urllib.request.urlretrieve(model_info["url"], zip_path, report_progress)
-        print()  # New line after progress
         
         # Extract
-        print(f"[VoskTranscriber] Extracting model...")
+        info("VoskTranscriber: Extracting model...")
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(model_dir)
         
         # Remove zip file
         zip_path.unlink()
         
-        print(f"[VoskTranscriber] Model ready: {model_path}")
+        info(f"VoskTranscriber: Model ready: {model_path}")
         return str(model_path)
     
     def process_audio(self, audio: np.ndarray) -> tuple[str, bool]:

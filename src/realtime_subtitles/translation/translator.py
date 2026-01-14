@@ -10,15 +10,17 @@ from pathlib import Path
 from typing import Optional
 import threading
 
+from ..logger import info, debug, warning, error
+
 # CTranslate2 imports with error handling
 try:
     import ctranslate2
     from transformers import AutoTokenizer
     from huggingface_hub import snapshot_download
     CTRANSLATE2_AVAILABLE = True
-    print("[Translator] CTranslate2 and transformers loaded successfully")
+    debug("CTranslate2 and transformers loaded successfully")
 except ImportError as e:
-    print(f"[Translator] Import failed: {e}")
+    warning(f"Translator import failed: {e}")
     CTRANSLATE2_AVAILABLE = False
 
 
@@ -113,7 +115,7 @@ class NLLBTranslator:
         model_path = self._get_or_download_model(model_info["repo"])
         
         # Load model
-        print(f"[NLLBTranslator] Loading {model_info['name']} on {device}...")
+        info(f"Loading NLLB {model_info['name']} on {device}...")
         
         self._translator = ctranslate2.Translator(
             str(model_path),
@@ -124,13 +126,13 @@ class NLLBTranslator:
         )
         
         # Load tokenizer from original model
-        print("[NLLBTranslator] Loading tokenizer...")
+        debug("Loading NLLB tokenizer...")
         self._tokenizer = AutoTokenizer.from_pretrained(
             "facebook/nllb-200-distilled-600M",
             src_lang="jpn_Jpan",  # Default source
         )
         
-        print(f"[NLLBTranslator] Initialized: {model_info['name']}, target={target_language}")
+        info(f"NLLB initialized: {model_info['name']}, target={target_language}")
     
     def _get_cache_dir(self) -> Path:
         """Get the model cache directory."""
@@ -145,11 +147,11 @@ class NLLBTranslator:
         model_path = cache_dir / model_name
         
         if model_path.exists() and (model_path / "model.bin").exists():
-            print(f"[NLLBTranslator] Using cached model: {model_path}")
+            debug(f"Using cached NLLB model: {model_path}")
             return model_path
         
-        print(f"[NLLBTranslator] Downloading model: {repo_id}")
-        print("[NLLBTranslator] This may take a while on first run...")
+        info(f"Downloading NLLB model: {repo_id}")
+        info("This may take a while on first run...")
         
         # Download from Hugging Face
         downloaded_path = snapshot_download(
@@ -158,7 +160,7 @@ class NLLBTranslator:
             local_dir_use_symlinks=False,
         )
         
-        print(f"[NLLBTranslator] Model downloaded: {downloaded_path}")
+        info(f"NLLB model downloaded: {downloaded_path}")
         return Path(downloaded_path)
     
     def translate(
@@ -220,7 +222,7 @@ class NLLBTranslator:
     def set_target_language(self, language: str) -> None:
         """Set the target language (NLLB format)."""
         self.target_language = language
-        print(f"[NLLBTranslator] Target language set to: {language}")
+        debug(f"NLLB target language set to: {language}")
     
     @classmethod
     def get_language_code(cls, display_name: str) -> str:
@@ -287,7 +289,7 @@ class GoogleTranslator:
         self._translator = GoogleTranslatorBase()
         self.target_language = target_language
         self._lock = threading.Lock()
-        print(f"[GoogleTranslator] Initialized with target={target_language}")
+        info(f"GoogleTranslator initialized with target={target_language}")
     
     def translate(
         self,
@@ -317,13 +319,13 @@ class GoogleTranslator:
                 result = self._translator.translate(text, src=src, dest=target)
                 return result.text
             except Exception as e:
-                print(f"[GoogleTranslator] Translation error: {e}")
+                warning(f"GoogleTranslator error: {e}")
                 return ""
     
     def set_target_language(self, language: str) -> None:
         """Set the target language."""
         self.target_language = language
-        print(f"[GoogleTranslator] Target language set to: {language}")
+        debug(f"GoogleTranslator target language set to: {language}")
     
     @classmethod
     def get_language_code(cls, display_name: str) -> str:

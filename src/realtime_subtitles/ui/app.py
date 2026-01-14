@@ -201,7 +201,8 @@ class App:
                 # Update UI in main thread
                 self._settings_window.after(0, self._on_pipeline_started)
             except Exception as e:
-                print(f"[App] Pipeline error: {e}")
+                from ..logger import error
+                error(f"Pipeline error: {e}")
                 self._settings_window.after(0, lambda: self._on_error(str(e)))
         
         threading.Thread(target=start_pipeline, daemon=True).start()
