@@ -37,15 +37,8 @@
 
 ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately**.
 
-| GPU Series | Support | Notes |
-|------------|---------|-------|
-| **RTX 40** (4050, 4060, 4070, 4080, 4090) | ✅ Full | Best performance |
-| **RTX 30** (3050, 3060, 3070, 3080, 3090) | ✅ Full | Excellent performance |
-| **RTX 20** (2060, 2070, 2080) | ✅ Full | Good performance |
-| **GTX 16** (1650, 1660) | ✅ Full | Good performance |
-| **GTX 10** (1050, 1060, 1070, 1080) | ✅ Full | Moderate performance |
-| **AMD / Intel GPU** | ⚠️ CPU Only | Falls back to CPU, slower |
-| **No GPU** | ⚠️ CPU Only | Works but slower |
+- ✅ **NVIDIA GTX 10 series or newer**
+- ⚠️ **AMD / Intel / No GPU**: Falls back to CPU mode (slower but works)
 
 ### NVIDIA Driver Requirements
 
