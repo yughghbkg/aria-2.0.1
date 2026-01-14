@@ -108,6 +108,9 @@ TRANSLATIONS = {
     "no": "否",
     "restart_required": "语言更改将在重启程序后生效",
     "already_running": "ARIA 已在运行中。\nARIA is already running.",
+    "reset_settings": "重置设置",
+    "reset_settings_confirm": "这将重置所有设置，包括字幕框位置。\nARIA 将会重启。是否继续？",
+    "reset_settings_desc": "修复看不到字幕框或恢复默认设置",
     
     # Tray notifications
     "tray_minimized_title": "程序已最小化到系统托盘",

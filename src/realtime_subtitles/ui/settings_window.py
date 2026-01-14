@@ -78,13 +78,13 @@ class SettingsWindow(ctk.CTk):
         
         # Window setup
         self.title("ARIA")
-        self.geometry("800x630")  # Wider layout for English text
+        self.geometry("800x680")  # Wider layout for English text, taller for reset button
         self.resizable(False, False)
         
         # Center window
         self.update_idletasks()
         x = (self.winfo_screenwidth() - 800) // 2
-        y = (self.winfo_screenheight() - 630) // 2
+        y = (self.winfo_screenheight() - 680) // 2
         self.geometry(f"+{x}+{y}")
         
         # Build UI
@@ -357,6 +357,32 @@ class SettingsWindow(ctk.CTk):
         )
         self.vad_desc.pack(padx=15, anchor="w", pady=(0, 10))
         
+        # === Reset Settings (in right column, below VAD) ===
+        reset_frame = ctk.CTkFrame(right_col, fg_color="transparent")
+        reset_frame.pack(fill="x", pady=(0, 10))
+        
+        self.reset_button = ctk.CTkButton(
+            reset_frame,
+            text="🔄 " + t("reset_settings"),
+            width=200,
+            height=32,
+            fg_color="transparent",
+            border_width=1,
+            border_color="#555555",
+            hover_color="#333333",
+            text_color="#aaaaaa",
+            command=self._on_reset_settings,
+        )
+        self.reset_button.pack(padx=18)
+        
+        reset_desc = ctk.CTkLabel(
+            reset_frame,
+            text=t("reset_settings_desc"),
+            font=ctk.CTkFont(size=11),
+            text_color="#888888",
+        )
+        reset_desc.pack(pady=(5, 0))
+        
         # Custom settings container (hidden by default)
         self.custom_settings_frame = ctk.CTkFrame(vad_frame, fg_color="transparent")
         # Don't pack yet - will be shown when custom mode is selected
@@ -422,14 +448,14 @@ class SettingsWindow(ctk.CTk):
         )
         self.status_label.pack(pady=(0, 10))
         
-        # === Footer ===
+        # === Footer === (placed with side=bottom first to reserve space)
         footer = ctk.CTkLabel(
             container,
             text="v0.1.0 | " + t("footer"),
             font=ctk.CTkFont(size=11),
             text_color="#666666",
         )
-        footer.pack(side="bottom")
+        footer.pack(side="bottom", pady=(0, 5))
     
     def _on_mode_change(self, mode: str) -> None:
         """Handle preset mode change."""
@@ -502,6 +528,30 @@ class SettingsWindow(ctk.CTk):
     def _on_manage_models(self) -> None:
         """Open the model manager window."""
         show_model_manager(self)
+    
+    def _on_reset_settings(self) -> None:
+        """Reset all settings to default values."""
+        from tkinter import messagebox
+        
+        # Confirm with user
+        result = messagebox.askyesno(
+            t("reset_settings"),
+            t("reset_settings_confirm"),
+            parent=self
+        )
+        
+        if result:
+            # Clear settings file
+            import os
+            settings_path = os.path.expanduser("~/.config/realtime-subtitles/settings.json")
+            if os.path.exists(settings_path):
+                os.remove(settings_path)
+            
+            # Restart app
+            import sys
+            import subprocess
+            subprocess.Popen([sys.executable, "-m", "realtime_subtitles.ui.app"])
+            sys.exit(0)
     
     def _update_vad_label(self, *args) -> None:
         """Update VAD label when switch changes."""

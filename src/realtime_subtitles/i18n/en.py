@@ -108,6 +108,9 @@ TRANSLATIONS = {
     "no": "No",
     "restart_required": "Language change will take effect after restart",
     "already_running": "ARIA is already running.",
+    "reset_settings": "Reset Settings",
+    "reset_settings_confirm": "This will reset all settings including overlay positions.\nARIA will restart. Continue?",
+    "reset_settings_desc": "Fix can't see overlay or restore defaults",
     
     # Tray notifications
     "tray_minimized_title": "Minimized to system tray",
