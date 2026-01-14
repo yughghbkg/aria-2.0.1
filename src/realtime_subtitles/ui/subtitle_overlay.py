@@ -34,9 +34,17 @@ class SubtitleOverlay(ctk.CTkToplevel):
     - Positioned at bottom of screen
     """
     
-    def __init__(self, parent: Optional[ctk.CTk] = None):
-        """Initialize the overlay window."""
+    def __init__(self, parent: Optional[ctk.CTk] = None, position_key: str = "overlay"):
+        """Initialize the overlay window.
+        
+        Args:
+            parent: Parent window
+            position_key: Key prefix for saving position (e.g., 'overlay' or 'translation_overlay')
+        """
         super().__init__(parent)
+        
+        # Position key for separate storage
+        self._position_key = position_key
         
         # Window setup
         self.title("Subtitles")
@@ -91,8 +99,8 @@ class SubtitleOverlay(ctk.CTkToplevel):
         
         # Try to load saved position
         settings = get_settings_manager()
-        saved_x = settings.get("overlay_x", None)
-        saved_y = settings.get("overlay_y", None)
+        saved_x = settings.get(f"{self._position_key}_x", None)
+        saved_y = settings.get(f"{self._position_key}_y", None)
         
         if saved_x is not None and saved_y is not None:
             # Use saved position
@@ -140,8 +148,8 @@ class SubtitleOverlay(ctk.CTkToplevel):
     def _save_position(self, x: int, y: int) -> None:
         """Save overlay position to settings."""
         settings = get_settings_manager()
-        settings.set("overlay_x", x)
-        settings.set("overlay_y", y)
+        settings.set(f"{self._position_key}_x", x)
+        settings.set(f"{self._position_key}_y", y)
         settings.save()
         
     def _setup_resize(self) -> None:

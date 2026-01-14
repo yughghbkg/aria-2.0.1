@@ -36,6 +36,11 @@ class App:
         self._last_settings: Optional[dict] = None
         self._is_streaming_mode = False
         self._enable_translation = False
+        
+        # For precise mode multi-line display
+        self._subtitle_lines: list = []
+        self._translation_lines: list = []
+        self._max_lines = 3  # Show 3 lines for precise mode
     
     def run(self) -> None:
         """Run the application."""
@@ -138,7 +143,7 @@ class App:
         
         # Create separate translation overlay if enabled
         if self._enable_translation and self._translation_overlay is None:
-            self._translation_overlay = SubtitleOverlay(self._settings_window)
+            self._translation_overlay = SubtitleOverlay(self._settings_window, position_key="translation_overlay")
             self._translation_overlay.set_translation_mode(True)  # Green text, positioned above
         elif not self._enable_translation and self._translation_overlay is not None:
             # Translation disabled - destroy existing overlay
@@ -237,18 +242,36 @@ class App:
         language = event.language
         translated = event.translated_text
         
+        # For precise mode, maintain history of lines
+        if not self._is_streaming_mode and text:
+            self._subtitle_lines.append(text)
+            if len(self._subtitle_lines) > self._max_lines:
+                self._subtitle_lines = self._subtitle_lines[-self._max_lines:]
+            display_text = "\n".join(self._subtitle_lines)
+        else:
+            display_text = text
+        
         # Update original overlay in main thread
         if self._overlay:
             self._settings_window.after(
                 0,
-                lambda t=text, l=language: self._overlay.update_subtitle(t, l)
+                lambda t=display_text, l=language: self._overlay.update_subtitle(t, l)
             )
         
         # Update translation overlay if enabled and has translation
         if self._translation_overlay and translated:
+            # For precise mode, maintain translation history
+            if not self._is_streaming_mode:
+                self._translation_lines.append(translated)
+                if len(self._translation_lines) > self._max_lines:
+                    self._translation_lines = self._translation_lines[-self._max_lines:]
+                display_translated = "\n".join(self._translation_lines)
+            else:
+                display_translated = translated
+            
             self._settings_window.after(
                 0,
-                lambda tr=translated: self._translation_overlay.update_subtitle(tr, "")
+                lambda tr=display_translated: self._translation_overlay.update_subtitle(tr, "")
             )
     
     def _on_error(self, error: str) -> None:
@@ -269,6 +292,10 @@ class App:
         if self._pipeline:
             self._pipeline.stop()
             self._pipeline = None
+        
+        # Clear subtitle history
+        self._subtitle_lines = []
+        self._translation_lines = []
         
         # Hide or destroy overlays
         if self._overlay:

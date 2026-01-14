@@ -22,6 +22,51 @@
 - 🎨 **Customizable Overlay**: Draggable subtitle window with adjustable position
 - 🌐 **Multilingual UI**: English, Traditional Chinese, Simplified Chinese
 
+## 💻 System Requirements
+
+### Minimum Requirements
+
+| Component | Requirement |
+|-----------|-------------|
+| **OS** | Windows 10 64-bit or later |
+| **CPU** | Intel i5 / AMD Ryzen 5 or better |
+| **RAM** | 8 GB (12 GB recommended) |
+| **Storage** | 6 GB (Lite) / 12 GB (Full) |
+
+### GPU Requirements (for Precise Mode)
+
+ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately**.
+
+| GPU Series | Support | Notes |
+|------------|---------|-------|
+| **RTX 40** (4050, 4060, 4070, 4080, 4090) | ✅ Full | Best performance |
+| **RTX 30** (3050, 3060, 3070, 3080, 3090) | ✅ Full | Excellent performance |
+| **RTX 20** (2060, 2070, 2080) | ✅ Full | Good performance |
+| **GTX 16** (1650, 1660) | ✅ Full | Good performance |
+| **GTX 10** (1050, 1060, 1070, 1080) | ✅ Full | Moderate performance |
+| **AMD / Intel GPU** | ⚠️ CPU Only | Falls back to CPU, slower |
+| **No GPU** | ⚠️ CPU Only | Works but slower |
+
+### NVIDIA Driver Requirements
+
+| Feature | Minimum Driver Version |
+|---------|----------------------|
+| CUDA 12.1 | **525.60.13** or later |
+| Recommended | **550+** for best compatibility |
+
+> 💡 **Tip**: Update your NVIDIA driver to the latest version for best performance.
+> Download from: https://www.nvidia.com/drivers
+
+### Performance Expectations
+
+| Mode | GPU | Speed |
+|------|-----|-------|
+| Precise Mode | RTX 4070 SUPER | ~10x realtime |
+| Precise Mode | RTX 3060 | ~5x realtime |
+| Precise Mode | GTX 1060 | ~2x realtime |
+| Precise Mode | CPU Only | ~0.5x realtime (slow) |
+| Realtime Mode | Any / CPU | Near-instant |
+
 ## 📦 Download
 
 ### Choose Your Version
