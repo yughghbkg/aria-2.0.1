@@ -77,3 +77,6 @@ release/
 python/
 *.bat
 *.vbs
+
+# docs
+docs/
