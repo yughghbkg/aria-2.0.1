@@ -14,9 +14,11 @@ TRANSLATIONS = {
     # Recognition settings
     "recognition_settings": "Recognition",
     "mode_precise": "Precise",
-    "mode_realtime": "Realtime",
+    "mode_realtime": "Real-time",
+    "mode_livecaptions": "Live Captions",
     "mode_precise_desc": "Wait for complete sentences, suitable for speeches and videos",
     "mode_realtime_desc": "Word-by-word display, Sherpa (CN/EN) / Vosk (JP)",
+    "mode_livecaptions_desc": "Use Windows 11 built-in Live Captions, requires 22H2+",
     
     # Translation settings
     "translation_settings": "Translation",
@@ -38,7 +40,7 @@ TRANSLATIONS = {
     "vad_on": "ON",
     "vad_off": "OFF",
     "vad_desc_precise": "Auto sentence splitting, enable when audio is clear",
-    "vad_desc_realtime": "Realtime mode uses built-in endpoint detection",
+    "vad_desc_realtime": "This detection mode uses built-in endpoint detection",
     "silence_threshold": "Silence Threshold",
     "min_duration": "Min Duration",
     

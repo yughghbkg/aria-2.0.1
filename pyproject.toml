@@ -31,6 +31,11 @@ dependencies = [
     "ctranslate2>=4.0.0",
     "sentencepiece>=0.1.99",
     "huggingface_hub>=0.20.0",
+    # LiveCaptions mode dependencies
+    "pywinauto>=0.6.8",
+    "uiautomation>=2.0.0",
+    "comtypes>=1.2.0",
+    "pyautogui>=0.9.53",
 ]
 
 [project.urls]

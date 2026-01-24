@@ -14,9 +14,10 @@
 ## Features
 
 - **Universal Audio Capture** - Works with any application (games, videos, calls, etc.)
-- **Two Recognition Modes**:
-  - **Precise Mode**: Uses Whisper for high-accuracy transcription
-  - **Realtime Mode**: Uses Sherpa-ONNX/Vosk for word-by-word streaming
+- **Three Recognition Modes**:
+  - **Precise Mode**: Uses Whisper for high-accuracy transcription (NVIDIA GPU recommended)
+  - **Realtime Mode**: Uses Sherpa-ONNX/Vosk for word-by-word streaming (CPU/GPU)
+  - **LiveCaptions Mode**: Uses Windows 11 built-in Live Captions (✅ **AMD GPU supported**)
 - **Multi-language Support**: Chinese, English, Japanese, Korean, and more
 - **Real-time Translation**: Translate transcriptions with Google Cloud or NLLB (local)
 - **Customizable Overlay**: Draggable subtitle window with adjustable position
@@ -34,12 +35,17 @@
 | **RAM** | 8 GB (12 GB recommended) |
 | **Storage** | 6 GB (Lite) / 12 GB (Full) |
 
-### GPU Requirements (for Precise Mode)
+### GPU Requirements
 
 ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately**.
 
-- ✅ **NVIDIA GTX 10 series or newer**
+**For Precise Mode:**
+- ✅ **NVIDIA GTX 10 series or newer** (recommended)
 - ⚠️ **AMD / Intel / No GPU**: Falls back to CPU mode (slower but works)
+
+**For LiveCaptions Mode:**
+- ✅ **All GPUs supported** (AMD, NVIDIA, Intel) - uses Windows 11 built-in AI
+- ⚠️ **Requires Windows 11 22H2 or later**
 
 ### NVIDIA Driver Requirements
 
@@ -55,7 +61,7 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 
 ### Choose Your Version
 
-| Version | Size | Description | Google Drive | Baidu (Lite) / Quark (Full) |
+| Version | Size | Description | Google Drive | Baidu |
 |---------|------|-------------|--------------|-----------------------------|
 | **Lite** | ~3 GB | No models included. Download models in-app. | [Google Drive](https://drive.google.com/drive/folders/1rRQrj0IPX7rnQxA30WvmxhH-5c6fWZa8?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1KkSlAv7X5yi90hTYuWZoPQ?pwd=j5ip) |
 | **Full** | ~7.6 GB | All models pre-installed. Ready to use. | [Google Drive](https://drive.google.com/drive/folders/1rdxunARIa3-68VV4xAKlbzh_dv_wI130?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1yGc-pU6DdPFw8po60ubI3w?pwd=r2m6) |
@@ -81,20 +87,24 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 
 ### Recognition Modes
 
-| Mode | Engine | Best For |
-|------|--------|----------|
-| **Precise** | Whisper | Speeches, videos, pre-recorded content |
-| **Realtime** | Sherpa-ONNX / Vosk | Live conversations, streaming |
+| Mode | Engine | Best For | GPU Requirement |
+|------|--------|----------|----------------|
+| **Precise** | Whisper | Speeches, videos, pre-recorded content | NVIDIA recommended |
+| **Realtime** | Sherpa-ONNX / Vosk | Live conversations, streaming | CPU/GPU |
+| **LiveCaptions** | Windows 11 AI | AMD GPU users, low latency | ✅ AMD/NVIDIA/Intel |
 
 ### Supported Languages
 
-| Language | Precise Mode | Realtime Mode |
-|----------|--------------|---------------|
-| Chinese (中文) | ✅ | ✅ (Sherpa-ONNX) |
-| English | ✅ | ✅ (Sherpa-ONNX bilingual) |
-| Japanese (日本語) | ✅ | ✅ (Vosk) |
-| Korean (한국어) | ✅ | ❌ |
-| + 50 more | ✅ | ❌ |
+| Language | Precise Mode | Realtime Mode | LiveCaptions Mode |
+|----------|--------------|---------------|------------------|
+| Chinese (中文) | ✅ | ✅ (Sherpa-ONNX) | ✅ |
+| English | ✅ | ✅ (Sherpa-ONNX) | ✅ |
+| Japanese (日本語) | ✅ | ✅ (Vosk) | ✅ |
+| Korean (한국어) | ✅ | ❌ | ✅ |
+| Spanish, French, etc. | ✅ | ❌ | ✅ |
+| + 50 more | ✅ | ❌ | ❌ |
+
+> 💡 **LiveCaptions Mode**: Supports 11 languages via Windows 11 built-in AI. No model download required!
 
 ### Translation
 

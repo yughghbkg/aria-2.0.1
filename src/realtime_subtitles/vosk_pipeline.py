@@ -117,7 +117,6 @@ class StreamingPipeline:
         
         # Display state
         self._lines: list = []  # History of final results
-        self._translation_lines: list = []  # History of translation results
         self._current_partial = ""
         
         # State
@@ -150,39 +149,19 @@ class StreamingPipeline:
             if not text:
                 continue
             
-            translated_text = None
-            if is_final:
-                # Final result - add to history
-                if text and text != (self._lines[-1] if self._lines else ""):
-                    self._lines.append(text)
-                    # Keep only recent lines
-                    if len(self._lines) > self.max_lines:
-                        self._lines = self._lines[-self.max_lines:]
-                    
-                    # Translate this line and add to translation history
-                    if self._translator:
-                        try:
-                            line_translation = self._translator.translate(text)
-                            if line_translation:
-                                self._translation_lines.append(line_translation)
-                                # Keep translation lines in sync with original
-                                if len(self._translation_lines) > self.max_lines:
-                                    self._translation_lines = self._translation_lines[-self.max_lines:]
-                                debug(f"Translated: {text[:30]}... -> {line_translation[:30]}...")
-                        except Exception as e:
-                            warning(f"Translation error: {e}")
-                
-                self._current_partial = ""
-            else:
-                # Partial result - no translation for partial
-                self._current_partial = text
-            
             # Build display text
             display_text = self._get_display_text()
             
-            # Build translation display (join all translation lines) - only if translation enabled
-            if self._translator and self._translation_lines:
-                translated_text = "\n".join(self._translation_lines[-self.max_lines:])
+            # Brute force translation: Translate EVERYTHING on every update
+            if self._translator and display_text:
+                try:
+                    # Translate the full text block
+                    # Note: This is inefficient but ensures translation matches full context
+                    translated_text = self._translator.translate(display_text)
+                    if translated_text:
+                         debug(f"Translated (Full): {display_text[:20]}... -> {translated_text[:20]}...")
+                except Exception as e:
+                    warning(f"Translation error: {e}")
             
             if display_text:
                 event = SubtitleEvent(

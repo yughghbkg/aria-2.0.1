@@ -14,9 +14,11 @@ TRANSLATIONS = {
     # Recognition settings
     "recognition_settings": "辨識設定",
     "mode_precise": "精準",
-    "mode_realtime": "實時",
+    "mode_realtime": "即時",
+    "mode_livecaptions": "內建字幕",
     "mode_precise_desc": "等待完整句子後再顯示，適合演講、影片",
     "mode_realtime_desc": "逐字顯示，Sherpa (中/英) / Vosk (日)",
+    "mode_livecaptions_desc": "使用 Windows 11 內建即時字幕，需 22H2+ 版本",
     
     # Translation settings
     "translation_settings": "翻譯設定",
@@ -38,7 +40,7 @@ TRANSLATIONS = {
     "vad_on": "ON",
     "vad_off": "OFF",
     "vad_desc_precise": "自動分句，建議聲音清晰時再開啟",
-    "vad_desc_realtime": "實時模式使用內建端點偵測，無法調整",
+    "vad_desc_realtime": "此偵測模式使用內建端點偵測，無法調整",
     "silence_threshold": "靜音閾值",
     "min_duration": "最短片段",
     

@@ -36,6 +36,9 @@ class SubtitleEvent:
     is_partial: bool = False
     translated_text: Optional[str] = None  # Translation (if enabled)
     target_language: Optional[str] = None  # Target language for translation
+    # Dual-buffer support
+    committed_translation: Optional[str] = None  # 已鎖定翻譯
+    draft_translation: Optional[str] = None  # 浮動區翻譯
 
 
 class RealtimePipeline:

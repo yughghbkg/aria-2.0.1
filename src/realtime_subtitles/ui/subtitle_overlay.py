@@ -5,7 +5,7 @@ A transparent, always-on-top, draggable window that displays subtitles.
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QApplication, QSizeGrip, QFrame
+    QWidget, QLabel, QVBoxLayout, QApplication, QSizeGrip, QFrame, QTextEdit
 )
 from PyQt6.QtCore import Qt, QPoint, QTimer
 from PyQt6.QtGui import QFont, QColor, QPalette, QScreen
@@ -99,29 +99,41 @@ class SubtitleOverlay(QWidget):
         container_layout.setContentsMargins(8, 6, 8, 6)
         container_layout.setSpacing(5)
         
-        # Subtitle label (main text)
-        self.subtitle_label = QLabel("")
+        # Subtitle label (main text) - using QTextEdit for auto-scroll
+        self.subtitle_label = QTextEdit()
+        self.subtitle_label.setReadOnly(True)
+        self.subtitle_label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.subtitle_label.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.subtitle_label.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.subtitle_label.setFrameStyle(QFrame.Shape.NoFrame)
         self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.subtitle_label.setWordWrap(True)
+        self.subtitle_label.document().setDocumentMargin(20)  # Add left/right padding
         self.subtitle_label.setStyleSheet("""
-            QLabel {
+            QTextEdit {
                 color: white;
                 font-size: 24px;
                 font-weight: bold;
                 background: transparent;
+                border: none;
             }
         """)
         container_layout.addWidget(self.subtitle_label)
         
-        # Translation label
-        self.translation_label = QLabel("")
+        # Translation label - using QTextEdit for auto-scroll
+        self.translation_label = QTextEdit()
+        self.translation_label.setReadOnly(True)
+        self.translation_label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.translation_label.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.translation_label.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.translation_label.setFrameStyle(QFrame.Shape.NoFrame)
         self.translation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.translation_label.setWordWrap(True)
+        self.translation_label.document().setDocumentMargin(20)  # Add left/right padding
         self.translation_label.setStyleSheet("""
-            QLabel {
+            QTextEdit {
                 color: #90EE90;
                 font-size: 20px;
                 background: transparent;
+                border: none;
             }
         """)
         self.translation_label.hide()  # Hidden by default
@@ -207,6 +219,8 @@ class SubtitleOverlay(QWidget):
         text: str,
         language: str = "",
         translated_text: str = None,
+        committed_translation: str = None,
+        draft_translation: str = None,
     ) -> None:
         """Update the displayed subtitle.
         
@@ -214,11 +228,28 @@ class SubtitleOverlay(QWidget):
             text: Subtitle text to display
             language: Language code (unused currently)
             translated_text: Translated text (optional)
+            committed_translation: Stable translation text (optional)
+            draft_translation: Unstable/draft translation text (optional)
         """
-        self.subtitle_label.setText(text)
+        self.subtitle_label.setPlainText(text)
+        # Auto-scroll to bottom to show latest content
+        self.subtitle_label.verticalScrollBar().setValue(
+            self.subtitle_label.verticalScrollBar().maximum()
+        )
         
-        if translated_text and translated_text.strip():
-            self.translation_label.setText(translated_text)
+        # Handle translation (support both simple and committed/draft modes)
+        final_translation = translated_text
+        if committed_translation is not None or draft_translation is not None:
+             committed = committed_translation or ""
+             draft = draft_translation or ""
+             final_translation = committed + draft
+
+        if final_translation and final_translation.strip():
+            self.translation_label.setPlainText(final_translation)
+            # Auto-scroll to bottom
+            self.translation_label.verticalScrollBar().setValue(
+                self.translation_label.verticalScrollBar().maximum()
+            )
             self.translation_label.show()
         else:
             self.translation_label.hide()
@@ -229,8 +260,8 @@ class SubtitleOverlay(QWidget):
     
     def clear(self) -> None:
         """Clear the subtitle display."""
-        self.subtitle_label.setText("")
-        self.translation_label.setText("")
+        self.subtitle_label.setPlainText("")
+        self.translation_label.setPlainText("")
         self.translation_label.hide()
     
     def set_multiline_mode(self, enabled: bool) -> None:
@@ -238,21 +269,23 @@ class SubtitleOverlay(QWidget):
         if enabled:
             self._window_height = 180
             self.subtitle_label.setStyleSheet("""
-                QLabel {
+                QTextEdit {
                     color: white;
                     font-size: 22px;
                     font-weight: bold;
                     background: transparent;
+                    border: none;
                 }
             """)
         else:
             self._window_height = 120
             self.subtitle_label.setStyleSheet("""
-                QLabel {
+                QTextEdit {
                     color: white;
                     font-size: 24px;
                     font-weight: bold;
                     background: transparent;
+                    border: none;
                 }
             """)
         self.resize(self._window_width, self._window_height)
@@ -261,11 +294,12 @@ class SubtitleOverlay(QWidget):
         """Configure as translation overlay (green text)."""
         if enabled:
             self.subtitle_label.setStyleSheet("""
-                QLabel {
+                QTextEdit {
                     color: #90EE90;
                     font-size: 24px;
                     font-weight: bold;
                     background: transparent;
+                    border: none;
                 }
             """)
 

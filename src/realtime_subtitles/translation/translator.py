@@ -194,6 +194,9 @@ class NLLBTranslator:
         if not text or not text.strip():
             return ""
         
+        # Log input
+        info(f"[NLLB] Translating: {text}")
+        
         target = target_language or self.target_language
         
         # Map simple language codes to NLLB format
@@ -228,7 +231,12 @@ class NLLBTranslator:
                 skip_special_tokens=True,
             )
         
-        return translated.strip()
+        translated = translated.strip()
+        
+        # Log output
+        info(f"[NLLB] Translation result: {translated}")
+        
+        return translated
     
     def set_target_language(self, language: str) -> None:
         """Set the target language (NLLB format)."""
@@ -322,13 +330,21 @@ class GoogleTranslator:
         if not text or not text.strip():
             return ""
         
+        # Log input
+        info(f"[Google] Translating: {text}")
+        
         target = target_language or self.target_language
         src = self.SOURCE_LANG_MAP.get(source_language, "auto") if source_language else "auto"
         
         with self._lock:
             try:
                 result = self._translator.translate(text, src=src, dest=target)
-                return result.text
+                translated = result.text
+                
+                # Log output
+                info(f"[Google] Translation result: {translated}")
+                
+                return translated
             except Exception as e:
                 warning(f"GoogleTranslator error: {e}")
                 return ""
@@ -463,6 +479,9 @@ class TranslatorsLibWrapper:
         if not text or not text.strip():
             return ""
         
+        # Log input
+        info(f"[{self.engine.upper()}] Translating: {text}")
+        
         target = target_language or self.target_language
         
         # Lazy import translators to avoid conflicts
@@ -480,6 +499,9 @@ class TranslatorsLibWrapper:
                 else:
                     warning(f"Unknown engine: {self.engine}, falling back to Google")
                     result = ts.translate_text(text, to_language=target, translator='google')
+                
+                # Log output
+                info(f"[{self.engine.upper()}] Translation result: {result}")
                 
                 return result
             except Exception as e:

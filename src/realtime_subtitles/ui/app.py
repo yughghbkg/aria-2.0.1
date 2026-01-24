@@ -15,6 +15,7 @@ from .subtitle_overlay import SubtitleOverlay
 from .system_tray import SystemTray
 from ..pipeline import RealtimePipeline, SubtitleEvent
 from ..vosk_pipeline import StreamingPipeline
+from ..livecaptions.pipeline import LiveCaptionsPipeline
 from ..model_manager import ModelManager, ModelType, ModelStatus
 from ..i18n import t
 
@@ -37,11 +38,12 @@ class App:
         self._settings_window: Optional[SettingsWindow] = None
         self._overlay: Optional[SubtitleOverlay] = None
         self._translation_overlay: Optional[SubtitleOverlay] = None
-        self._pipeline: Optional[Union[RealtimePipeline, StreamingPipeline]] = None
+        self._pipeline: Optional[Union[RealtimePipeline, StreamingPipeline, LiveCaptionsPipeline]] = None
         self._tray: Optional[SystemTray] = None
         self._is_running = False
         self._last_settings: Optional[dict] = None
         self._is_streaming_mode = False
+        self._is_livecaptions_mode = False
         self._enable_translation = False
         
         # For precise mode multi-line display
@@ -131,37 +133,63 @@ class App:
         # Check mode
         mode = settings.get("mode", "precise")
         self._is_streaming_mode = (mode == "realtime")
+        self._is_livecaptions_mode = (mode == "livecaptions")
         self._enable_translation = settings.get("enable_translation", False)
         
         # Check if all required models are available
         if not self._check_all_required_models(settings):
             return
         
-        # Create overlay
-        if self._overlay is None:
-            self._overlay = SubtitleOverlay(on_close=self._stop)
-        
-        # Create translation overlay if enabled
-        if self._enable_translation and self._translation_overlay is None:
-            self._translation_overlay = SubtitleOverlay(
-                position_key="translation_overlay",
-                on_close=self._stop
-            )
-            self._translation_overlay.set_translation_mode(True)
-        elif not self._enable_translation and self._translation_overlay is not None:
-            self._translation_overlay.close()
-            self._translation_overlay = None
-        
-        # Set overlay mode
-        if self._is_streaming_mode:
-            self._overlay.set_multiline_mode(True)
-            if self._translation_overlay:
-                self._translation_overlay.set_multiline_mode(True)
+        # Create overlays based on mode
+        if self._is_livecaptions_mode:
+            # LiveCaptions mode: only create translation overlay if needed
+            # (original subtitles shown by Windows LiveCaptions)
+            if self._enable_translation:
+                if self._translation_overlay is None:
+                    self._translation_overlay = SubtitleOverlay(
+                        position_key="translation_overlay",
+                        on_close=self._stop
+                    )
+                    self._translation_overlay.set_translation_mode(True)
+                    self._translation_overlay.set_multiline_mode(True)
+            elif self._translation_overlay is not None:
+                self._translation_overlay.close()
+                self._translation_overlay = None
+        else:
+            # Other modes: create both original and translation overlays
+            if self._overlay is None:
+                self._overlay = SubtitleOverlay(on_close=self._stop)
+            
+            # Create translation overlay if enabled
+            if self._enable_translation and self._translation_overlay is None:
+                self._translation_overlay = SubtitleOverlay(
+                    position_key="translation_overlay",
+                    on_close=self._stop
+                )
+                self._translation_overlay.set_translation_mode(True)
+            elif not self._enable_translation and self._translation_overlay is not None:
+                self._translation_overlay.close()
+                self._translation_overlay = None
+            
+            # Set overlay mode
+            if self._is_streaming_mode:
+                self._overlay.set_multiline_mode(True)
+                if self._translation_overlay:
+                    self._translation_overlay.set_multiline_mode(True)
         
         # Create pipeline
         def create_pipeline():
             try:
-                if self._is_streaming_mode:
+                if self._is_livecaptions_mode:
+                    # Use Windows LiveCaptions
+                    self._pipeline = LiveCaptionsPipeline(
+                        on_subtitle=lambda e: self._signals.subtitle.emit(e),
+                        enable_translation=self._enable_translation,
+                        translation_engine=settings.get("translation_engine", "google"),
+                        target_language=settings.get("target_language", "zho_Hant"),
+                        auto_hide_window=False,  # Keep Windows LiveCaptions window visible
+                    )
+                elif self._is_streaming_mode:
                     # Use streaming pipeline
                     lang = settings.get("language") or "zh"  # Default to zh if None
                     self._pipeline = StreamingPipeline(
@@ -202,13 +230,21 @@ class App:
         self._is_running = True
         self._settings_window.show_running()
         
-        # Show overlay
-        self._overlay.show()
-        self._overlay.update_subtitle(t("overlay_waiting"), "")
-        
-        if self._translation_overlay:
-            self._translation_overlay.show()
-            self._translation_overlay.update_subtitle(t("overlay_translation_waiting"), "")
+        # Show overlays based on mode
+        if self._is_livecaptions_mode:
+            # LiveCaptions mode: only show translation overlay
+            if self._translation_overlay:
+                self._translation_overlay.show()
+                self._translation_overlay.update_subtitle(t("overlay_translation_waiting"), "")
+        else:
+            # Other modes: show original subtitle overlay
+            if self._overlay:
+                self._overlay.show()
+                self._overlay.update_subtitle(t("overlay_waiting"), "")
+            
+            if self._translation_overlay:
+                self._translation_overlay.show()
+                self._translation_overlay.update_subtitle(t("overlay_translation_waiting"), "")
         
         # Update tray
         if self._tray:
@@ -218,11 +254,37 @@ class App:
         """Handle subtitle events from pipeline."""
         if not self._is_running:
             return
+        
+        # For LiveCaptions mode, only update translation overlay
+        if self._is_livecaptions_mode:
+            # Windows LiveCaptions shows the original text
+            # We only need to handle translation
+            if self._translation_overlay:
+                # 隱藏原文框（LiveCaptions 已顯示）
+                if hasattr(self._translation_overlay, 'subtitle_label'):
+                    self._translation_overlay.subtitle_label.hide()
+                
+                # 使用新的雙緩衝字段
+                if (getattr(event, 'committed_translation', None) is not None or 
+                    getattr(event, 'draft_translation', None) is not None):
+                    self._translation_overlay.update_subtitle(
+                        "",
+                        "",
+                        None,
+                        committed_translation=event.committed_translation,
+                        draft_translation=event.draft_translation
+                    )
+                elif event.translated_text:
+                    # 向後兼容舊格式
+                    self._translation_overlay.update_subtitle("", "", translated_text=event.translated_text)
+            return
+        
         text = event.text
         language = event.language
         translated = event.translated_text
         
-        # For precise mode, maintain history of lines
+        # For precise mode only, maintain history of lines
+        # Streaming modes show text directly
         if not self._is_streaming_mode and text:
             self._subtitle_lines.append(text)
             if len(self._subtitle_lines) > self._max_lines:
@@ -237,7 +299,7 @@ class App:
         
         # Update translation overlay
         if self._translation_overlay and translated:
-            if not self._is_streaming_mode:
+            if not self._is_streaming_mode and not self._is_livecaptions_mode:
                 self._translation_lines.append(translated)
                 if len(self._translation_lines) > self._max_lines:
                     self._translation_lines = self._translation_lines[-self._max_lines:]
@@ -285,8 +347,18 @@ class App:
         manager = ModelManager()
         mode = settings.get("mode", "precise")
         
+        # Skip model checks for LiveCaptions mode (uses Windows built-in)
+        if mode == "livecaptions":
+            # Only check NLLB if translation is enabled
+            if settings.get("enable_translation", False) and settings.get("translation_engine", "google") == "nllb":
+                for m in manager.get_all_models():
+                    if m.model_type == ModelType.NLLB:
+                        status = manager.get_status(m)
+                        if status != ModelStatus.DOWNLOADED:
+                            missing_models.append(m)
+                        break
         # Check Whisper model (only for precise mode)
-        if mode == "precise":
+        elif mode == "precise":
             model_id = settings.get("model", "large-v3")
             for m in manager.get_all_models():
                 if m.model_type == ModelType.WHISPER and model_id in m.id:
@@ -305,8 +377,8 @@ class App:
                         missing_models.append(m)
                     break
         
-        # Check NLLB model (if translation enabled with NLLB engine)
-        if settings.get("enable_translation", False) and settings.get("translation_engine", "google") == "nllb":
+        # Check NLLB model (if translation enabled with NLLB engine, and not already checked)
+        if mode != "livecaptions" and settings.get("enable_translation", False) and settings.get("translation_engine", "google") == "nllb":
             for m in manager.get_all_models():
                 if m.model_type == ModelType.NLLB:
                     status = manager.get_status(m)
