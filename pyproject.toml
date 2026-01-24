@@ -1,6 +1,6 @@
 [project]
 name = "aria-subtitles"
-version = "0.1.0"
+version = "1.0.0"
 description = "ARIA - AI Realtime Intelligent Audio | Universal Real-time AI Subtitles"
 readme = "README.md"
 license = { text = "GPL-3.0" }

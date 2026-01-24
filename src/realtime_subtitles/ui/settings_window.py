@@ -299,7 +299,7 @@ class SettingsWindow(QMainWindow):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_container.addWidget(title)
         
-        subtitle = QLabel(t("subtitle") + " | v0.1.0")
+        subtitle = QLabel(t("subtitle") + " | v1.0.0")
         subtitle.setStyleSheet("color: #aaaaaa; font-size: 12px;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_container.addWidget(subtitle)
