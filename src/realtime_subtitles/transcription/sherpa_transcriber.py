@@ -160,7 +160,7 @@ class SherpaTranscriber:
         info(f"SherpaTranscriber: Model ready: {model_path}")
         return model_path
     
-    def process_audio(self, audio: np.ndarray) -> tuple[str, bool]:
+    def process_audio(self, audio: np.ndarray) -> str:
         """
         Process audio data and get transcription.
         
@@ -168,7 +168,7 @@ class SherpaTranscriber:
             audio: Audio samples (float32, 16kHz mono)
         
         Returns:
-            Tuple of (text, is_final)
+            Full accumulated transcript text (continuous stream, no segmentation)
         """
         # Feed audio to stream
         self._stream.accept_waveform(self.SAMPLE_RATE, audio)
@@ -181,43 +181,9 @@ class SherpaTranscriber:
         result = self._recognizer.get_result(self._stream)
         text = result.strip() if isinstance(result, str) else getattr(result, 'text', '').strip()
         
-        is_final = False
-        current_time = time.time()
-        
-        if text and text != self._last_text:
-            # Text changed - update last change time, reset finalized flag
-            self._last_change_time = current_time
-            self._last_text = text
-            self._text_finalized = False
-            
-            # Check if endpoint detected by recognizer OR text is too long
-            should_finalize = (
-                self._recognizer.is_endpoint(self._stream) or
-                len(text) >= self._max_segment_length
-            )
-            
-            if should_finalize:
-                is_final = True
-                self._text_finalized = True
-                if self.on_final:
-                    self.on_final(text)
-                self._recognizer.reset(self._stream)
-                self._last_text = ""
-            else:
-                if self.on_partial:
-                    self.on_partial(text)
-        elif text and text == self._last_text and not self._text_finalized:
-            # Text is stable and not yet finalized - check if timeout reached
-            if current_time - self._last_change_time >= self._stable_timeout:
-                is_final = True
-                self._text_finalized = True
-                if self.on_final:
-                    self.on_final(text)
-                # Reset for next utterance
-                self._recognizer.reset(self._stream)
-                self._last_text = ""
-        
-        return text, is_final
+        # Simply return the full accumulated text (like LiveCaptions raw stream)
+        # No finalization, no segmentation - let TranslationStateManager handle that
+        return text
     
     def reset(self) -> None:
         """Reset the recognizer state."""

@@ -161,7 +161,7 @@ class VoskTranscriber:
         info(f"VoskTranscriber: Model ready: {model_path}")
         return str(model_path)
     
-    def process_audio(self, audio: np.ndarray) -> tuple[str, bool]:
+    def process_audio(self, audio: np.ndarray) -> str:
         """
         Process audio data and get transcription.
         
@@ -169,7 +169,7 @@ class VoskTranscriber:
             audio: Audio samples (float32, 16kHz mono)
         
         Returns:
-            Tuple of (text, is_final)
+            Full accumulated transcript text (continuous stream, no segmentation)
         """
         # Convert to int16 for Vosk
         audio_int16 = (audio * 32767).astype(np.int16)
@@ -177,25 +177,21 @@ class VoskTranscriber:
         
         # Process
         if self._recognizer.AcceptWaveform(audio_bytes):
-            # Final result
+            # Final result - update accumulated text
             result = json.loads(self._recognizer.Result())
             text = result.get("text", "")
             if text:
                 self._final_text = text
-                if self.on_final:
-                    self.on_final(text)
-                return text, True
         else:
             # Partial result
             result = json.loads(self._recognizer.PartialResult())
             text = result.get("partial", "")
             if text:
                 self._partial_text = text
-                if self.on_partial:
-                    self.on_partial(text)
-                return text, False
         
-        return self._partial_text or self._final_text, False
+        # Return the best current text (final if available, else partial)
+        # This matches Sherpa's continuous stream behavior
+        return self._final_text or self._partial_text
     
     def reset(self) -> None:
         """Reset the recognizer state."""

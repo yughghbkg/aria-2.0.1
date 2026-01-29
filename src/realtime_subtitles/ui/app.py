@@ -298,16 +298,31 @@ class App:
             self._overlay.update_subtitle(display_text, language)
         
         # Update translation overlay
-        if self._translation_overlay and translated:
-            if not self._is_streaming_mode and not self._is_livecaptions_mode:
-                self._translation_lines.append(translated)
-                if len(self._translation_lines) > self._max_lines:
-                    self._translation_lines = self._translation_lines[-self._max_lines:]
-                display_translated = "\n".join(self._translation_lines)
-            else:
-                display_translated = translated
+        # Update translation overlay
+        if self._translation_overlay:
+            # Check for dual-buffer fields (New Streaming/LiveCaptions logic)
+            if (getattr(event, 'committed_translation', None) is not None or 
+                getattr(event, 'draft_translation', None) is not None):
+                
+                self._translation_overlay.update_subtitle(
+                    "",
+                    "",
+                    None,
+                    committed_translation=event.committed_translation,
+                    draft_translation=event.draft_translation
+                )
             
-            self._translation_overlay.update_subtitle(display_translated, "")
+            # Fallback to legacy translated_text (Precise Mode)
+            elif translated:
+                if not self._is_streaming_mode and not self._is_livecaptions_mode:
+                    self._translation_lines.append(translated)
+                    if len(self._translation_lines) > self._max_lines:
+                        self._translation_lines = self._translation_lines[-self._max_lines:]
+                    display_translated = "\n".join(self._translation_lines)
+                else:
+                    display_translated = translated
+                
+                self._translation_overlay.update_subtitle(display_translated, "")
     
     def _on_error(self, error: str) -> None:
         """Handle pipeline error."""

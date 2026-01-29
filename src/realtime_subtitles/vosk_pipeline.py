@@ -40,6 +40,9 @@ except ImportError as e:
     TRANSLATION_AVAILABLE = False
     create_translator = None
 
+# TranslationStateManager for incremental translation (matches LiveCaptions logic)
+from .livecaptions.manager import TranslationStateManager
+
 
 class StreamingPipeline:
     """
@@ -100,31 +103,40 @@ class StreamingPipeline:
             self._transcriber = VoskTranscriber(language=language)
             self._engine_name = "Vosk"
         
-        # Translation (optional)
+        # Translation (optional) - now using TranslationStateManager
         self._translator = None
+        self._state_manager = None
         if enable_translation and TRANSLATION_AVAILABLE:
             try:
                 self._translator = create_translator(
                     engine=translation_engine,
                     target_language=target_language,
                 )
+                # Initialize TranslationStateManager with translator function
+                self._state_manager = TranslationStateManager(
+                    translator=self._translator.translate
+                )
+                debug(f"StreamingPipeline: TranslationStateManager initialized")
             except Exception as e:
                 warning(f"Translation init failed: {e}")
                 self._translator = None
+                self._state_manager = None
         
         # Audio capture
         self._audio_capture = AudioCapture()
-        
-        # Display state
-        self._lines: list = []  # History of final results
-        self._current_partial = ""
         
         # State
         self._running = False
         self._audio_queue: queue.Queue = queue.Queue()
         self._process_thread: Optional[threading.Thread] = None
         
-        trans_status = "enabled" if self._translator else "disabled"
+        # Async Conflation State (for buffering ASR while translating)
+        self._latest_raw_text: str = ""
+        self._new_text_event = threading.Event()
+        self._text_lock = threading.Lock()
+        self._translation_thread: Optional[threading.Thread] = None
+        
+        trans_status = "enabled (incremental)" if self._state_manager else "disabled"
         info(f"Using {self._engine_name} for {language}, translation={trans_status}")
     
     def _default_callback(self, event: SubtitleEvent) -> None:
@@ -136,71 +148,114 @@ class StreamingPipeline:
         self._audio_queue.put(audio)
     
     def _process_loop(self) -> None:
-        """Background thread for audio processing."""
+        """
+        ASR Thread: High-speed audio processing.
+        Produces raw text stream, never blocks on translation.
+        """
         while self._running:
             try:
                 audio = self._audio_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
             
-            # Process with transcriber
-            text, is_final = self._transcriber.process_audio(audio)
+            # Process with transcriber (Fast, local C++ call)
+            # Returns continuous raw text stream
+            raw_text = self._transcriber.process_audio(audio)
             
-            if not text:
+            if not raw_text:
                 continue
             
-            # Build display text
-            display_text = self._get_display_text()
+            # Update latest text safely
+            with self._text_lock:
+                self._latest_raw_text = raw_text
+                self._new_text_event.set()  # Signal translation thread
             
-            # Brute force translation: Translate EVERYTHING on every update
-            if self._translator and display_text:
-                try:
-                    # Translate the full text block
-                    # Note: This is inefficient but ensures translation matches full context
-                    translated_text = self._translator.translate(display_text)
-                    if translated_text:
-                         debug(f"Translated (Full): {display_text[:20]}... -> {translated_text[:20]}...")
-                except Exception as e:
-                    warning(f"Translation error: {e}")
-            
-            if display_text:
+            # If no translation is enabled, we need to emit here immediately
+            # otherwise we won't see anything. 
+            if not self._state_manager:
+                # Emit raw text immediately (no translation)
                 event = SubtitleEvent(
-                    text=display_text,
+                    text=raw_text,
                     language=self.language,
                     confidence=1.0,
                     timestamp=time.time(),
-                    is_partial=not is_final,
-                    translated_text=translated_text,
-                    target_language=self.target_language if translated_text else None,
+                    is_partial=True,
+                    committed_translation="",
+                    draft_translation="",
+                    target_language=None,
                 )
                 self.on_subtitle(event)
-    
-    def _get_display_text(self) -> str:
-        """Get full display text with history + partial."""
-        lines = self._lines.copy()
-        if self._current_partial:
-            lines.append(self._current_partial)
-        
-        # Keep only last N lines
-        lines = lines[-self.max_lines:]
-        
-        return "\n".join(lines)
-    
+
+    def _translation_loop(self) -> None:
+        """
+        Translation Thread: Low-speed translation processing.
+        Consumes latest raw text, blocks on network calls (Google/NLLB).
+        Conflates updates (skips intermediate frames if falling behind).
+        """
+        while self._running:
+            # Wait for new text (with timeout to allow checking _running)
+            if not self._new_text_event.wait(timeout=0.1):
+                continue
+            
+            # Get latest text and clear flag
+            raw_text = ""
+            with self._text_lock:
+                raw_text = self._latest_raw_text
+                self._new_text_event.clear()
+            
+            if not raw_text or not self._state_manager:
+                continue
+                
+            try:
+                # BLOCKS HERE: TranslationStateManager calls network translator
+                state = self._state_manager.process_text(raw_text)
+                
+                # Emit translated event
+                event = SubtitleEvent(
+                    text=raw_text,
+                    language=self.language,
+                    confidence=1.0,
+                    timestamp=time.time(),
+                    is_partial=True,
+                    committed_translation=state.committed_text,
+                    draft_translation=state.draft_text,
+                    target_language=self.target_language,
+                )
+                self.on_subtitle(event)
+                
+            except Exception as e:
+                warning(f"StreamingPipeline: Translation error: {e}")
+
     def start(self) -> None:
         """Start the streaming pipeline."""
         if self._running:
             return
         
         self._running = True
-        self._lines.clear()
-        self._current_partial = ""
         
-        # Start processing thread
+        # Reset state
+        self._latest_raw_text = ""
+        self._new_text_event.clear()
+        
+        # Reset state manager for fresh start
+        if self._state_manager:
+            self._state_manager.reset()
+        
+        # Start threads
         self._process_thread = threading.Thread(
             target=self._process_loop,
             daemon=True,
+            name="StreamingPipeline_ASR"
         )
         self._process_thread.start()
+        
+        if self._state_manager:
+            self._translation_thread = threading.Thread(
+                target=self._translation_loop,
+                daemon=True,
+                name="StreamingPipeline_Translation"
+            )
+            self._translation_thread.start()
         
         # Start audio capture
         self._audio_capture.start(callback=self._on_audio)
@@ -210,11 +265,15 @@ class StreamingPipeline:
     def stop(self) -> None:
         """Stop the pipeline."""
         self._running = False
+        self._new_text_event.set() # Wake up translation thread
         
         self._audio_capture.stop()
         
         if self._process_thread:
             self._process_thread.join(timeout=2.0)
+        
+        if self._translation_thread:
+            self._translation_thread.join(timeout=2.0)
         
         # Clear queue
         while not self._audio_queue.empty():
@@ -223,16 +282,7 @@ class StreamingPipeline:
             except queue.Empty:
                 break
         
-        # Get any final result
-        final = self._transcriber.get_final_result()
-        if final:
-            self._lines.append(final)
-        
         info("StreamingPipeline stopped")
-    
-    def __enter__(self):
-        self.start()
-        return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
