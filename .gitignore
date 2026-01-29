@@ -83,3 +83,6 @@ docs/
 
 # tests
 tests/
+
+# lite version
+ARIA-v2-lite/
