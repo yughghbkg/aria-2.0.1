@@ -1,4 +1,4 @@
-# ARIA
+# ARIA v2
 
 <p align="center">
   <strong>AI Realtime Intelligent Audio</strong>
@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/platform-Windows-lightgrey.svg" alt="Windows">
   <img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="GPLv3 License">
 </p>
-
 **Universal Real-time AI Subtitles for Windows** - Capture and transcribe any audio playing on your system with AI-powered speech recognition.
 
 ## Features
@@ -17,7 +16,7 @@
 - **Three Recognition Modes**:
   - **Precise Mode**: Uses Whisper for high-accuracy transcription (NVIDIA GPU recommended)
   - **Realtime Mode**: Uses Sherpa-ONNX/Vosk for word-by-word streaming (CPU/GPU)
-  - **LiveCaptions Mode**: Uses Windows 11 built-in Live Captions (✅ **AMD GPU supported**)
+  - **LiveCaptions Mode**: Uses Windows 11 built-in AI (✅ **No GPU/CUDA required**, works on AMD/Intel/NVIDIA)
 - **Multi-language Support**: Chinese, English, Japanese, Korean, and more
 - **Real-time Translation**: Translate transcriptions with Google Cloud or NLLB (local)
 - **Customizable Overlay**: Draggable subtitle window with adjustable position
@@ -26,36 +25,20 @@
 
 ## System Requirements
 
-### Minimum Requirements
+### 🟢 ARIA Lite (Recommended)
+**Perfect for most users. Zero configuration.**
+*   **OS**: Windows 11 (version 22H2 or later)
+*   **Hardware**: Any standard laptop or PC (Intel/AMD/NVIDIA)
+*   **No specific GPU or CUDA required.**
 
-| Component | Requirement |
-|-----------|-------------|
-| **OS** | Windows 10 64-bit or later |
-| **CPU** | Intel i5 / AMD Ryzen 5 or better |
-| **RAM** | 8 GB (12 GB recommended) |
-| **Storage** | 6 GB (Lite) / 12 GB (Full) |
+---
 
-### GPU Requirements
+### � ARIA Full (Pro / Offline)
+**For users needing high-precision offline transcription.**
 
-ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately**.
-
-**For Precise Mode:**
-- ✅ **NVIDIA GTX 10 series or newer** (recommended)
-- ⚠️ **AMD / Intel / No GPU**: Falls back to CPU mode (slower but works)
-
-**For LiveCaptions Mode:**
-- ✅ **All GPUs supported** (AMD, NVIDIA, Intel) - uses Windows 11 built-in AI
-- ⚠️ **Requires Windows 11 22H2 or later**
-
-### NVIDIA Driver Requirements
-
-| Feature | Minimum Driver Version |
-|---------|----------------------|
-| CUDA 12.1 | **525.60.13** or later |
-| Recommended | **550+** for best compatibility |
-
-> 💡 **Tip**: Update your NVIDIA driver to the latest version for best performance.
-> Download from: https://www.nvidia.com/drivers
+*   **OS**: Windows 10 or 11
+*   **GPU**: NVIDIA GTX 10 series or newer (Recommended for best speed)
+*   **Storage**: ~10 GB free space
 
 ## Download
 
@@ -63,10 +46,10 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 
 | Version | Size | Description | Google Drive | Baidu |
 |---------|------|-------------|--------------|-----------------------------|
-| **Lite** | ~3 GB | No models included. Download models in-app. | [Google Drive](https://drive.google.com/drive/folders/1rRQrj0IPX7rnQxA30WvmxhH-5c6fWZa8?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1KkSlAv7X5yi90hTYuWZoPQ?pwd=j5ip) |
-| **Full** | ~7.6 GB | All models pre-installed. Ready to use. | [Google Drive](https://drive.google.com/drive/folders/1rdxunARIa3-68VV4xAKlbzh_dv_wI130?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1yGc-pU6DdPFw8po60ubI3w?pwd=r2m6) |
+| **Lite** 【Recommended】 | ~600 MB | **Best for most users.** Lightweight, fast, accurate, works on ANY GPU (AMD/Intel). | [Google Drive](https://drive.google.com/drive/folders/1rRQrj0IPX7rnQxA30WvmxhH-5c6fWZa8?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1KkSlAv7X5yi90hTYuWZoPQ?pwd=j5ip) |
+| **Full** | ~7.6 GB | All Modes (Precise/Realtime/Live). Offline models pre-installed. | [Google Drive](https://drive.google.com/drive/folders/1rdxunARIa3-68VV4xAKlbzh_dv_wI130?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1yGc-pU6DdPFw8po60ubI3w?pwd=r2m6) |
 
-### Included Models (Full Version)
+### Full Version Included Models
 
 | Model | Type | Size | Languages |
 |-------|------|------|-----------|
@@ -78,10 +61,9 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 ## Quick Start
 
 1. Download and extract the ZIP file
-2. Double-click **`ARIA.vbs`** (silent) or **`ARIA.bat`** (with console)
-3. If using **Lite** version, click **Manage Models** to download required models
-4. Select recognition mode and language
-5. Click **Start Subtitles**
+2. Double-click **`ARIA.bat`**
+3. **Lite Version**: Ready to use immediately (Live Captions only).
+4. **Full Version**: Select mode and click **Start**.
 
 ## Configuration
 
@@ -91,7 +73,7 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 |------|--------|----------|----------------|
 | **Precise** | Whisper | Speeches, videos, pre-recorded content | NVIDIA recommended |
 | **Realtime** | Sherpa-ONNX / Vosk | Live conversations, streaming | CPU/GPU |
-| **LiveCaptions** | Windows 11 AI | AMD GPU users, low latency | ✅ AMD/NVIDIA/Intel |
+| **LiveCaptions** | Windows 11 AI | **General Use (Movies/Meetings)** | ✅ Any CPU / GPU (No NPU needed) |
 
 ### Supported Languages
 
@@ -104,7 +86,7 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 | Spanish, French, etc. | ✅ | ❌ | ✅ |
 | + 50 more | ✅ | ❌ | ❌ |
 
-> 💡 **LiveCaptions Mode**: Supports 11 languages via Windows 11 built-in AI. No model download required!
+> **LiveCaptions Mode**: Supports 11 languages via Windows 11 built-in AI. No model download required!
 
 ### Translation
 
@@ -116,7 +98,7 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 - **Bing Translator**: Microsoft's translation service
 - **Youdao**: 有道翻譯 (specialized for Chinese-English translation)
 
-> 💡 **Note**: Online services use web scraping and may be subject to rate limiting. Local NLLB model recommended for reliability.
+>  **Note**: Online services use web scraping and may be subject to rate limiting. Local NLLB model recommended for reliability.
 
 ## Package Structure
 
@@ -124,9 +106,8 @@ ARIA includes CUDA 12.1 runtime, so **you don't need to install CUDA separately*
 ARIA/
 ├── python/          # Embedded Python (no installation needed)
 ├── src/             # Source code
-├── models/          # AI models (Lite: empty, Full: pre-installed)
-├── ARIA.bat         # Launcher with console window
-└── ARIA.vbs         # Silent launcher (recommended)
+├── models/          # AI models (Full version only)
+├── ARIA.bat         # Launcher
 ```
 
 ## Screenshots
@@ -134,24 +115,6 @@ ARIA/
 ![image-20260117231941984](README.assets/image-20260117231941984.png)
 ![image-20260117233035105](README.assets/image-20260117233035105.png)
 
-## For Developers
-
-```bash
-# Clone the repository
-git clone https://github.com/sayksii/aria.git
-cd aria
-
-# Create virtual environment
-python -m venv venv
-venv\Scripts\activate
-
-# Install dependencies
-pip install -e .
-pip install PyQt6  # UI framework
-
-# Run
-python -m realtime_subtitles.ui.app
-```
 
 ## License
 
