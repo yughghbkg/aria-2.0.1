@@ -33,7 +33,7 @@
 
 ---
 
-### � ARIA Full (Pro / Offline)
+### 🔷 ARIA Full (Pro / Offline)
 **For users needing high-precision offline transcription.**
 
 *   **OS**: Windows 10 or 11
@@ -46,7 +46,7 @@
 
 | Version | Size | Description | Google Drive | Baidu |
 |---------|------|-------------|--------------|-----------------------------|
-| **Lite** 【Recommended】 | ~600 MB | **Best for most users.** Lightweight, fast, accurate, works on ANY GPU (AMD/Intel). | [Google Drive](https://drive.google.com/drive/folders/1rRQrj0IPX7rnQxA30WvmxhH-5c6fWZa8?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1KkSlAv7X5yi90hTYuWZoPQ?pwd=j5ip) |
+| **Lite** 【Recommended】 | ~600 MB | **Best for most users.** Lightweight, fast, accurate, works on ANY GPU (AMD/Intel). **Requires Windows 11 (22H2 or later).** | [Google Drive](https://drive.google.com/drive/folders/1rRQrj0IPX7rnQxA30WvmxhH-5c6fWZa8?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1KkSlAv7X5yi90hTYuWZoPQ?pwd=j5ip) |
 | **Full** | ~7.6 GB | All Modes (Precise/Realtime/Live). Offline models pre-installed. | [Google Drive](https://drive.google.com/drive/folders/1rdxunARIa3-68VV4xAKlbzh_dv_wI130?usp=drive_link) | [Baidu](https://pan.baidu.com/s/1yGc-pU6DdPFw8po60ubI3w?pwd=r2m6) |
 
 ### Full Version Included Models
@@ -94,6 +94,7 @@
 - **NLLB-200**: Meta's multilingual translation model, supports 200+ languages, runs locally
 
 **Online Services (Free APIs):**
+
 - **Google Translate**: Fast and accurate, via web scraping
 - **Bing Translator**: Microsoft's translation service
 - **Youdao**: 有道翻譯 (specialized for Chinese-English translation)
@@ -112,8 +113,8 @@ ARIA/
 
 ## Screenshots
 
-![image-20260117231941984](README.assets/image-20260117231941984.png)
-![image-20260117233035105](README.assets/image-20260117233035105.png)
+![image-20260130022131177](README.assets/image-20260130022131177.png)
+![image-20260130022334918](README.assets/image-20260130022334918.png)
 
 
 ## License
