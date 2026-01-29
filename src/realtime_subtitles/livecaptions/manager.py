@@ -76,6 +76,7 @@ class TranslationStateManager:
         # Draft state (volatile, overwritten each update)
         self._draft_sources: List[str] = []        # Source sentences pending
         self._draft_translation: str = ""          # Translation of draft sources
+        self._last_processed_text: str = ""        # Cache for duplicate detection
     
     def process_text(self, full_source_text: str) -> TranslationState:
         """
@@ -87,6 +88,12 @@ class TranslationStateManager:
         Returns:
             TranslationState with committed (white) and draft (green) text
         """
+        # Duplicate check: If text hasn't changed, don't re-process
+        if full_source_text == self._last_processed_text:
+            return self._build_state()
+            
+        self._last_processed_text = full_source_text
+        
         if not full_source_text or not full_source_text.strip():
             return self._build_state()
         
@@ -268,6 +275,7 @@ class TranslationStateManager:
         self._committed_paragraphs.clear()
         self._draft_sources.clear()
         self._draft_translation = ""
+        self._last_processed_text = ""
     
     def get_debug_info(self) -> dict:
         """Get debug information about current state."""

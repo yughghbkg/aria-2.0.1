@@ -162,7 +162,9 @@ class StreamingPipeline:
             # Returns continuous raw text stream
             raw_text = self._transcriber.process_audio(audio)
             
-            if not raw_text:
+            # Check for changes to avoid redundant updates
+            # (Sherpa/Vosk returns same text repeatedly until new audio changes it)
+            if not raw_text or raw_text == self._latest_raw_text:
                 continue
             
             # Update latest text safely
