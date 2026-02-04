@@ -58,7 +58,8 @@ class TranslationStateManager:
     FUZZY_THRESHOLD = 0.65  # 65% similarity = match (Lowered for stability)
     
     # Max draft size (sentences) to prevent huge translation requests
-    MAX_DRAFT_SENTENCES = 5
+    # MUST be >= DRAFT_COMMIT_THRESHOLD to avoid skipping sentences
+    MAX_DRAFT_SENTENCES = 8
     
     def __init__(
         self,
