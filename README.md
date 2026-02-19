@@ -23,3 +23,8 @@
 可以选择是否对子文件夹进行扫描
 
 可以自动上传到 s3云盘，进行直链访问
+
+<img width="860" height="700" alt="PixPin_2026-02-19_05-25-50" src="https://github.com/user-attachments/assets/5cb7e9c9-8016-41ad-b4b2-a6d63e3bdbe9" />
+<img width="860" height="700" alt="PixPin_2026-02-19_05-25-39" src="https://github.com/user-attachments/assets/173cce11-5af3-4c0b-a2e5-f2f3c5aafa64" />
+<img width="1436" height="700" alt="19" src="https://github.com/user-attachments/assets/6088cbb4-62ff-444b-9a79-2e4005a8f4c0" />
+
